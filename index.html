@@ -282,9 +282,7 @@ footer{max-width:480px;margin:0 auto;padding:0 16px calc(env(safe-area-inset-bot
       <div class="bank-wrap">
         <select class="bank-sel" id="bankSel" onchange="onBankChange(this.value)">
           <option value="albaraka">Albaraka</option>
-          <option value="vakifbank">Vakıfbank</option>
           <option value="enpara">Enpara</option>
-          <option value="isbank">İş Bankası</option>
         </select>
       </div>
 
@@ -378,12 +376,12 @@ footer{max-width:480px;margin:0 auto;padding:0 16px calc(env(safe-area-inset-bot
       </div>
       <div class="info-row">
         <div class="ibox">
-          <div class="ibox-lbl">Dünya Spot (TL)</div>
-          <div class="ibox-val" id="sDunya">—</div>
+          <div class="ibox-lbl">Makas (TL)</div>
+          <div class="ibox-val" id="sMakasTL">—</div>
         </div>
         <div class="ibox">
-          <div class="ibox-lbl">Banka Farkı</div>
-          <div class="ibox-val" id="sFark">—</div>
+          <div class="ibox-lbl">Makas (%)</div>
+          <div class="ibox-val" id="sMakasPct">—</div>
         </div>
       </div>
     </div>
@@ -407,12 +405,12 @@ footer{max-width:480px;margin:0 auto;padding:0 16px calc(env(safe-area-inset-bot
       </div>
       <div class="info-row">
         <div class="ibox">
-          <div class="ibox-lbl">Dünya Spot (TL)</div>
-          <div class="ibox-val" id="gDunya">—</div>
+          <div class="ibox-lbl">Makas (TL)</div>
+          <div class="ibox-val" id="gMakasTL">—</div>
         </div>
         <div class="ibox">
-          <div class="ibox-lbl">Banka Farkı</div>
-          <div class="ibox-val" id="gFark">—</div>
+          <div class="ibox-lbl">Makas (%)</div>
+          <div class="ibox-val" id="gMakasPct">—</div>
         </div>
       </div>
     </div>
@@ -442,7 +440,7 @@ footer{max-width:480px;margin:0 auto;padding:0 16px calc(env(safe-area-inset-bot
         <div class="sum-row"><span class="sum-lbl">Toplam miktar</span><span class="sum-val silver" id="sTGram">—</span></div>
         <div class="sum-row"><span class="sum-lbl">Toplam maliyet</span><span class="sum-val" id="sTCost">—</span></div>
         <div class="sum-row"><span class="sum-lbl">Ortalama alış</span><span class="sum-val" id="sAvg">—</span></div>
-        <div class="sum-row"><span class="sum-lbl">Güncel değer</span><span class="sum-val silver" id="sTVal">—</span></div>
+        <div class="sum-row"><span class="sum-lbl" id="sTValLbl">Güncel değer</span><span class="sum-val silver" id="sTVal">—</span></div>
         <div class="sum-row"><span class="sum-lbl">Kâr / Zarar</span><span class="sum-val" id="sTPnl">—</span></div>
         <div class="cash-box">
           <div class="cash-lbl">Bugün bankaya satarsam (alış fiyatı)</div>
@@ -471,7 +469,7 @@ footer{max-width:480px;margin:0 auto;padding:0 16px calc(env(safe-area-inset-bot
         <div class="sum-row"><span class="sum-lbl">Toplam miktar</span><span class="sum-val gold" id="gTGram">—</span></div>
         <div class="sum-row"><span class="sum-lbl">Toplam maliyet</span><span class="sum-val" id="gTCost">—</span></div>
         <div class="sum-row"><span class="sum-lbl">Ortalama alış</span><span class="sum-val" id="gAvg">—</span></div>
-        <div class="sum-row"><span class="sum-lbl">Güncel değer</span><span class="sum-val gold" id="gTVal">—</span></div>
+        <div class="sum-row"><span class="sum-lbl" id="gTValLbl">Güncel değer</span><span class="sum-val gold" id="gTVal">—</span></div>
         <div class="sum-row"><span class="sum-lbl">Kâr / Zarar</span><span class="sum-val" id="gTPnl">—</span></div>
         <div class="cash-box">
           <div class="cash-lbl">Bugün bankaya satarsam (alış fiyatı)</div>
@@ -542,8 +540,7 @@ footer{max-width:480px;margin:0 auto;padding:0 16px calc(env(safe-area-inset-bot
       Sunulan fiyat verileri, seçili bankanın resmi web sitesi esas alınarak Cloudflare Worker aracılığıyla derlenmektedir.
       Fiyatlar piyasa koşullarına bağlı olarak değişkenlik gösterebilir; kesin doğruluk garantisi verilmez.
       Yatırım kararlarınız için lisanslı bir finansal danışmana başvurunuz.<br><br>
-      <strong>Veri kaynakları:</strong> Seçili bankanın resmi web sitesi ·
-      Dünya spot referansı: gold-api.com
+      <strong>Veri kaynakları:</strong> Seçili bankanın resmi web sitesi.
     </div>
   </div>
 </footer>
@@ -555,14 +552,14 @@ footer{max-width:480px;margin:0 auto;padding:0 16px calc(env(safe-area-inset-bot
 // ═══════════════════════════════════════
 // BANKA TANIMLARI
 // ═══════════════════════════════════════
-const BANKS = {
-  albaraka: { label: 'Albaraka',   worker: 'https://albaraka-scraper.seyranikngr.workers.dev' },
-  vakifbank:{ label: 'Vakıfbank',  worker: '' }, // worker eklenince dolacak
-  enpara:   { label: 'Enpara',     worker: '' },
-  isbank:   { label: 'İş Bankası', worker: '' },
-};
+const WORKER_URL = 'https://albaraka-scraper.seyranikngr.workers.dev';
 
-const ONS = 31.1035;
+// Worker tek JSON döner: { albaraka:{USD,EUR,XAU,XAG}, enpara:{USD,EUR,XAU} }
+// Enpara'da XAG yok → PWA albaraka.XAG kullanır
+const BANKS = {
+  albaraka: { label: 'Albaraka' },
+  enpara:   { label: 'Enpara'   },
+};
 
 // ═══════════════════════════════════════
 // STATE
@@ -572,7 +569,6 @@ const S = {
   usd:       null,
   gAlis: null, gSatis: null,
   sAlis: null, sSatis: null,
-  gSpot: null, sSpot: null,   // dünya TL hesabı
   gHist: [],   sHist: [],
   lastUpdate:  null,
   lastFetch:   0,
@@ -585,11 +581,6 @@ let gChartInst = null, sChartInst = null;
 // BANKA
 // ═══════════════════════════════════════
 function onBankChange(val) {
-  if (!BANKS[val].worker) {
-    showToast(BANKS[val].label + ' worker\'ı henüz eklenmedi.');
-    $('bankSel').value = S.bank;
-    return;
-  }
   S.bank = val;
   localStorage.setItem('mt_bank', val);
   S.lastFetch = 0;
@@ -640,44 +631,46 @@ function showMtab(type, btn) {
 }
 
 // ═══════════════════════════════════════
-// API — BANKA WORKER
+// API — TEK WORKER, TÜM KAYNAKLAR
+// Worker: { albaraka:{USD,EUR,XAU,XAG}, enpara:{USD,EUR,XAU} }
 // ═══════════════════════════════════════
 async function fetchBank() {
   const now = Date.now();
   if (now - S.lastFetch < 7000) return;
   S.lastFetch = now;
 
-  const url = BANKS[S.bank]?.worker;
-  if (!url) {
-    setBadge('gBadge','err','Worker yok');
-    setBadge('sBadge','err','Worker yok');
-    return;
-  }
-
-  const bankLabel = BANKS[S.bank].label;
   setBadge('gBadge',   'loading', 'Yükleniyor');
   setBadge('sBadge',   'loading', 'Yükleniyor');
   setBadge('kurBadge', 'loading', 'Yükleniyor');
 
   try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    const res = await fetch(WORKER_URL, { signal: AbortSignal.timeout(12000) });
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const d = JSON.parse(await res.text());
+    const all = JSON.parse(await res.text());
     const t = new Date().toLocaleTimeString('tr-TR', { hour:'2-digit', minute:'2-digit' });
 
-    // KUR
-    if (d.USD) {
-      S.usd = parseFloat(d.USD.sell);
-      $('kurUsd').textContent = pf(d.USD.buy, 2) + ' / ' + pf(d.USD.sell, 2) + ' ₺';
-      setBadge('kurBadge', 'live', bankLabel); // ← banka adı göster
+    // Seçili bankaya göre veri bloğu
+    const bk   = S.bank;                    // 'albaraka' | 'enpara'
+    const src  = all[bk]  || {};
+    const alb  = all.albaraka || {};
+    const bankLabel = BANKS[bk].label;
+
+    // KUR — seçili bankadan, yoksa albaraka
+    const usdData = src.USD || alb.USD;
+    const eurData = src.EUR || alb.EUR;
+    if (usdData) {
+      S.usd = parseFloat(usdData.sell);
+      $('kurUsd').textContent = pf(usdData.buy, 2) + ' / ' + pf(usdData.sell, 2) + ' ₺';
+      setBadge('kurBadge', 'live', bankLabel);
     }
-    if (d.EUR) {
-      $('kurEur').textContent = pf(d.EUR.buy, 2) + ' / ' + pf(d.EUR.sell, 2) + ' ₺';
+    if (eurData) {
+      $('kurEur').textContent = pf(eurData.buy, 2) + ' / ' + pf(eurData.sell, 2) + ' ₺';
     }
 
-    // ALTIN
-    if (d.XAU?.buy) {
-      const a = parseFloat(d.XAU.buy), s = parseFloat(d.XAU.sell);
+    // ALTIN — seçili bankadan, yoksa albaraka
+    const xauData = src.XAU || alb.XAU;
+    if (xauData?.buy) {
+      const a = parseFloat(xauData.buy), s = parseFloat(xauData.sell);
       if (a > 100) {
         S.gAlis = a; S.gSatis = s;
         $('gAlis').textContent  = fmt(a, 0) + ' ₺';
@@ -687,19 +680,26 @@ async function fetchBank() {
       } else setBadge('gBadge','err','Veri hatası');
     } else setBadge('gBadge','err','XAU yok');
 
-    // GÜMÜŞ
-    if (d.XAG?.buy) {
-      const a = parseFloat(d.XAG.buy), s = parseFloat(d.XAG.sell);
+    // GÜMÜŞ — enpara seçiliyse albaraka'dan, diğer bankalar kendi
+    const xagData = (bk === 'enpara') ? alb.XAG : (src.XAG || alb.XAG);
+    const xagLabel = (bk === 'enpara') ? 'Albaraka' : bankLabel;
+    if (xagData?.buy) {
+      const a = parseFloat(xagData.buy), s = parseFloat(xagData.sell);
       if (a > 1) {
         S.sAlis = a; S.sSatis = s;
         $('sAlis').textContent  = fmt(a, 3) + ' ₺';
         $('sSatis').textContent = fmt(s, 3) + ' ₺';
-        setBadge('sBadge', 'live', bankLabel);
+        setBadge('sBadge', 'live', xagLabel);
         push20(S.sHist, { t, v: s });
       } else setBadge('sBadge','err','Veri hatası');
     } else setBadge('sBadge','err','XAG yok');
 
-    updateFark(); checkAlarms(); renderPortfoy();
+    // Label güncelle
+    const sLbl = bk === 'enpara' ? 'GÜMÜŞ — ALBARAKA ★' : 'GÜMÜŞ — ' + bankLabel.toUpperCase();
+    const sEl = $('sLbl'); if(sEl) sEl.textContent = sLbl;
+    const gEl = $('gLbl'); if(gEl) gEl.textContent = 'ALTIN — ' + bankLabel.toUpperCase();
+
+    updateMakas(); checkAlarms(); renderPortfoy();
     return true;
   } catch(e) {
     const msg = e.message?.includes('fetch') ? 'Bağlantı hatası' : (e.message||'').slice(0,18);
@@ -711,37 +711,24 @@ async function fetchBank() {
   }
 }
 
-// ═══════════════════════════════════════
-// API — DÜNYA SPOT (sadece fark)
-// ═══════════════════════════════════════
-async function fetchSpot() {
-  try {
-    const [gd, sd] = await Promise.all([
-      fetch('https://api.gold-api.com/price/XAU', {signal:AbortSignal.timeout(8000)}).then(r=>r.json()),
-      fetch('https://api.gold-api.com/price/XAG', {signal:AbortSignal.timeout(8000)}).then(r=>r.json()),
-    ]);
-    if (S.usd) {
-      S.gSpot = (gd.price / ONS) * S.usd;
-      S.sSpot = (sd.price / ONS) * S.usd;
-      updateFark();
-    }
-  } catch(e) {}
-}
-
-function updateFark() {
-  if (S.sSpot) $('sDunya').textContent = fmt(S.sSpot, 2) + ' ₺';
-  if (S.sSatis && S.sSpot) {
-    const d = S.sSatis - S.sSpot, p = (d / S.sSpot * 100).toFixed(1);
-    const el = $('sFark');
-    el.textContent = (d>=0?'+':'') + fmt(d,2) + ' ₺ (' + (d>=0?'+':'') + p + '%)';
-    el.className = 'ibox-val ' + (d >= 0 ? 'pos' : 'neg');
+function updateMakas() {
+  // Gümüş makas: satış - alış
+  if (S.sAlis && S.sSatis) {
+    const tl  = S.sSatis - S.sAlis;
+    const pct = (tl / S.sAlis * 100).toFixed(2);
+    $('sMakasTL').textContent  = fmt(tl, 2) + ' ₺';
+    $('sMakasPct').textContent = '%' + pct;
+    $('sMakasTL').className  = 'ibox-val';
+    $('sMakasPct').className = 'ibox-val';
   }
-  if (S.gSpot) $('gDunya').textContent = fmt(S.gSpot, 0) + ' ₺';
-  if (S.gSatis && S.gSpot) {
-    const d = S.gSatis - S.gSpot, p = (d / S.gSpot * 100).toFixed(1);
-    const el = $('gFark');
-    el.textContent = (d>=0?'+':'') + fmt(d,0) + ' ₺ (' + (d>=0?'+':'') + p + '%)';
-    el.className = 'ibox-val ' + (d >= 0 ? 'pos' : 'neg');
+  // Altın makas: satış - alış
+  if (S.gAlis && S.gSatis) {
+    const tl  = S.gSatis - S.gAlis;
+    const pct = (tl / S.gAlis * 100).toFixed(2);
+    $('gMakasTL').textContent  = fmt(tl, 0) + ' ₺';
+    $('gMakasPct').textContent = '%' + pct;
+    $('gMakasTL').className  = 'ibox-val';
+    $('gMakasPct').className = 'ibox-val';
   }
 }
 
@@ -752,7 +739,6 @@ async function fetchAll() {
   $('refreshBtn').classList.add('spin');
   $('lastUpdate').textContent = 'Güncelleniyor…';
   await fetchBank();
-  if (S.usd) fetchSpot(); // arka planda
   S.lastUpdate = new Date().toLocaleString('tr-TR');
   $('lastUpdate').textContent = 'Güncellendi: ' + S.lastUpdate;
   $('refreshBtn').classList.remove('spin');
@@ -810,6 +796,9 @@ function renderPortfoy() {
     $(isG?'gTCost':'sTCost').textContent = fmt(tCost,0)+' ₺';
     $(isG?'gAvg'  :'sAvg'  ).textContent = fmt(avg,2)+' ₺/gr';
     $(isG?'gTVal' :'sTVal' ).textContent = tVal ? fmt(tVal,0)+' ₺' : '—';
+    // Güncel değer label'ında hangi banka seçili göster
+    const valLbl = $(isG?'gTValLbl':'sTValLbl');
+    if (valLbl) valLbl.textContent = 'Güncel değer (' + BANKS[S.bank].label + ')';
 
     const pnlEl = $(isG?'gTPnl':'sTPnl');
     if (pnl!==null) {
